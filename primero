@@ -1,0 +1,66 @@
+#include <Servo.h>
+
+const int pot = 0;              // pin del potenciometro
+const int serv = 9;             // pin del servo
+int val = 0;                    // valor del potenciometro
+int ang = 1500;                 // valor del potenciometro mapeado
+const int pulsoMin = 1400;      // pulso minimo del servo en microsegundos
+const int pulsoMax = 1700;      // pulso maximo del servo en microsegundos
+int tiempo1 = 0;                // variable para el tiempo en el cual el servo se debe mover
+int ultval = 0;                 // variable para guardar el ultimo angulo usado
+
+Servo miServo; 
+
+void setup() {
+  miServo.attach(serv, pulsoMin, pulsoMax);   // pongo el servo en el pin 9
+  Serial.begin(9600);                         // inicie esto para poder medir los valores del servo o del potenciometro
+             }
+
+void loop() {
+  val = analogRead(pot);                      // leo el potenciometro y lo meto en la variable "val"
+  ang = map(val, 0, 1023, 1320, 1680);        // intruduzco el valor ya mapeado en la variable "ang"
+  Serial.println(val);                        // leo el valor de una variable para poder verla en el monitor serie
+  tiempo1 = 0;                                // establezco el tiempo en cero, just in case
+  if(ang > ultval)                            // si el actual valor leido es mayor q el antiguo,haz esto...
+  {
+    if(ang>1500 && ang<=1680)                 // si ese valor esta entre 1500 y 1680, haz esto...
+    {
+    tiempo1 = ((ang-ultval)*1666);            //calculo el tiempo q debe estar activado el servo para completar ese angulo exacto, sabiendo que un grado son 1666 microsegundos a velocidad de 1700
+    miServo.writeMicroseconds(pulsoMax);      //activo el servo hacia la derecha a velocidad maxima
+    delayMicroseconds(tiempo1);               //espero el calculo guardado en la variable tiempo1 en microsegundos!!
+    miServo.writeMicroseconds(1500);          //paro el servo
+    ultval = ang;                             //guardo el angulo actual en ultval para su siguiente uso
+    }
+    else if(ang<1500 && ang>=1320)
+      {
+    tiempo1 = ((ang-ultval)*1666);
+    miServo.writeMicroseconds(pulsoMax);
+    delayMicroseconds(tiempo1);
+    miServo.writeMicroseconds(1500);
+    ultval = ang;
+      }                                             
+  }
+  else if(ang < ultval)
+    {
+    if(ang>1500 && ang<=1680)
+    {
+    tiempo1 = (((ang-ultval)*(-1))*1666);             //aqui es lo mismo  q la otra formula solo aqui va a dar numeros negativos por lo q multiplico por -1 para tener un tiempo en positivo
+    miServo.writeMicroseconds(pulsoMin);
+    delayMicroseconds(tiempo1);
+    miServo.writeMicroseconds(1500);
+    ultval = ang;   
+    }
+    else if(ang<1500 && ang>=1320)
+      {
+    tiempo1 = (((ang-ultval)*(-1))*1666);
+    miServo.writeMicroseconds(pulsoMin);
+    delayMicroseconds(tiempo1);
+    miServo.writeMicroseconds(1500);
+    ultval = ang;
+      }                       
+    }
+    else{
+    miServo.writeMicroseconds(1500);
+    }
+  
+  }
